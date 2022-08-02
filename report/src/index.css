@@ -1,0 +1,117 @@
+.table-container {
+    overflow-y: auto;
+    max-height: 500px;
+    border: 1px solid #DFE1E6;
+} 
+
+table {
+    border-spacing: 0;
+    width: 100%;
+}
+
+th {
+    background-color: #FAFBFC;
+    font-weight: normal;
+    position: sticky;
+    top: 0;
+    border-bottom: 1px solid #DFE1E6;
+}
+
+tr {
+    display: table-row;
+}
+
+th, td {
+    padding: 5px;
+}
+
+td:nth-last-child(1) {
+    max-width: 200px;
+}
+
+td {
+    border: none;
+    border-width: 0;
+}
+
+.svg-container {
+    border: 1px solid black;
+}
+
+.overflow-text-container {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+th:hover {
+    background-color: rgb(180, 202, 253);
+    cursor: pointer;
+}
+
+tbody tr.selectable:hover, tr.selected {
+    background-color: rgba(29, 96, 250, 0.08);
+    cursor: pointer;
+}
+
+#pathview-pathway-name {
+    font-weight: normal;
+}
+
+img {
+    width: 800px;
+}
+
+.map-area {
+    border-radius: 3px;
+    padding: 2px;
+    position: absolute;
+}
+
+.map-area-tag {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid gainsboro;
+    border-radius: 4px;
+    padding: 4px;
+    z-index: 1000;
+    width: 100px;
+}
+
+.map-area:hover + .map-area-tag {
+    display: block;
+}
+
+.map-area-tag:hover {
+    display: block;
+}
+
+#pathway-search {
+    padding: 5px;
+    border: 1px solid gainsboro;
+    width: 300px;
+    margin-bottom: 5px;
+}
+
+.store {
+    display: none;
+}
+
+.select-names {
+    padding-bottom: 4px;
+    border-bottom: 1px solid gainsboro;
+    margin-bottom: 4px;
+}
+
+#lfc-plot {
+    border: 1px solid black;
+}
+
+#pathview-body {
+    border: 1px solid black;
+    width: 800px;
+    height: 600px;
+    overflow: hidden;
+}
