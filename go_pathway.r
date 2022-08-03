@@ -85,7 +85,7 @@ if (nrow(go) > 0) {
   dev.off()
   
   png(file="/root/res/Gene Ontology/Ridge Plot.png", width=960, height=900)
-  ridgeplot(go) + labs(x = "enrichment distribution")
+  print(ridgeplot(go) + labs(x = "enrichment distribution"))
   dev.off()
 } else {
   warn(paste(
@@ -109,7 +109,7 @@ if (nrow(kks) > 0) {
   dev.off()
   
   png(file="/root/res/KEGG/Ridge Plot.png", width=960, height=900)
-  ridgeplot(kks) + labs(x = "enrichment distribution")
+  print(ridgeplot(kks) + labs(x = "enrichment distribution"))
   dev.off()
   
   entrezIDsToGeneNames <- function (entrezIDs) {
@@ -155,5 +155,5 @@ print(dotplot(msig, showCategory=20, split=".sign") + facet_grid(.~.sign))
 dev.off()
 
 png(file="/root/res/MSig/Ridge Plot.png", width=960, height=900)
-ridgeplot(msig) + labs(x = "enrichment distribution")
+print(ridgeplot(msig) + labs(x = "enrichment distribution"))
 dev.off()
