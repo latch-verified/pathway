@@ -8,14 +8,13 @@ import EllipsisToolTip from "ellipsis-tooltip-react-chan";
 import Plotly from 'plotly.js-dist';
 import './index.css';
 
-// Workflow code will inject JSON-stringified data
-// into the report, using Jinja2
-const _injectMe = (name) => JSON.parse(name);
-const PATHWAY_DATA = _injectMe(`{{ pathwayData }}`)
-const CONTRAST_DATA = _injectMe(`{{ contrastData }}`)
-const GENES_BY_PATHWAY_ID = _injectMe(`{{ pathwayIdToGenes }}`)
+// Workflow code will inject JSON-stringified data into the report, using Jinja2
+const injection = (name) => JSON.parse(name);
+const PATHWAY_DATA = injection(`{{ pathwayData }}`)
+const CONTRAST_DATA = injection(`{{ contrastData }}`)
+const GENE_SETS_BY_PATHWAY_ID = injection(`{{ pathwayIdToGeneSets }}`)
 const CORE_GENES = Array.from(new Set(PATHWAY_DATA.flatMap(x => x.coreEnrichedGenes)));
-const PATHWAY_ID_TO_GENE_GROUPS = _injectMe(`{{ pathwayIdToGeneGroups }}`)
+const PATHWAY_ID_TO_GENE_GROUPS = injection(`{{ pathwayIdToGeneGroups }}`)
 
 const sorter = (a, b) => {
 	const [af, bf] = [parseFloat(a), parseFloat(b)];
@@ -211,9 +210,6 @@ const AnnotatedPathview = ({ pathwayId, selected, addViewGene, removeViewGene })
 	);
 }
 
-// Legacy of using NCBI E-Utilities API
-// const RE = new RegExp('Entrezgene ::= {.+? {4}geneid (\d+).*? {2}type ([^,]+).+?(?:summary "(.+?)",).+}', 'gs')
-
 const fetchGeneInfoByEntrezIds = async (ids) => {
 	const body = {
 		ids: ids.join(","),
@@ -231,7 +227,7 @@ const PathwayGeneTable = ({ selectedPathwayId, selectedGenes, addViewGene, remov
 	const [filterGenes, setFilterGenes] = React.useState(null);
 	const [store, setStore] = React.useState({});
 
-	const genes = GENES_BY_PATHWAY_ID[selectedPathwayId];
+	const genes = GENE_SETS_BY_PATHWAY_ID[selectedPathwayId];
 	
 	React.useEffect(() => {
 		if (genes == null)
@@ -328,8 +324,6 @@ const Plot = ({ data, layout }) => {
 
 const LogFoldChangePlot = ({ selectedGenes }) => {
 	const sortedGenes = React.useMemo(() => {
-		// console.log(CONTRAST_DATA[selectedGenes[0]][0]);
-		// console.log(typeof CONTRAST_DATA[selectedGenes[0]][0]);
 		return [...selectedGenes].sort((a, b) => -sorter(CONTRAST_DATA[b][0], CONTRAST_DATA[a][0]));
 	}, [selectedGenes])
 	
@@ -357,7 +351,6 @@ const LogFoldChangePlot = ({ selectedGenes }) => {
 }
 
 const Report = () => {
-//   const [genes, setGenes] = React.useState(injectMe('{{ genes }}'));
 	const [selectedPathwayId, setSelectedPathwayId] = React.useState(null);
 	const [viewGenes, setViewGenes] = React.useState([]);
 
