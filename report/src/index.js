@@ -219,7 +219,7 @@ const fetchGeneInfoByEntrezIds = async (ids) => {
 		ids: ids.join(","),
 		fields: ['geneid', 'name', 'type_of_gene', 'summary'].join(","),
 	};
-	const req = await fetch(`http://mygene.info/v3/gene`, {
+	const req = await fetch(`https://mygene.info/v3/gene`, {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(body),
