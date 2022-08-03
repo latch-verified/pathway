@@ -103,8 +103,12 @@
           analyses used data drawn from the
           <a href='https://www.genome.jp/kegg/pathway.html'>KEGG Pathway Database</a>
         </div>
-        <img src="./KEGG/Dot Plot.png" />
-        <img src="./KEGG/Ridge Plot.png" />
+        {% if showKEGG %}
+          <img src="./KEGG/Dot Plot.png" />
+          <img src="./KEGG/Ridge Plot.png" />
+        {% else %}
+          <br>No significant KEGG pathways found.
+        {% endif %}
       </div>
       <div class="f c s">
         <h2>MSig</h2>
@@ -120,7 +124,9 @@
           <img id="pathview-{{ data.id }}" src="{{ data.path }}" />
         {% endfor %}
       </div>
-      <div id="react-entrypoint"></div>
+      {% if showKEGG %}
+        <div id="react-entrypoint"></div>
+      {% endif %}
     </div>
   </body>
 </html>
