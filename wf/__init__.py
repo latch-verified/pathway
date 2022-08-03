@@ -1,27 +1,24 @@
 import csv
+import json
+import os
 import re
 import subprocess
 from pathlib import Path
 from xml.etree import ElementTree
 
-from latch import large_task, workflow, message
-from latch.types import LatchAuthor, LatchDir, LatchFile, LatchMetadata, LatchParameter
-
 import imagesize
-
-import glob
-import os
-
 from jinja2 import Template
-
-import json
-
+from latch import large_task, message, workflow
+from latch.types import LatchAuthor, LatchDir, LatchFile, LatchMetadata, LatchParameter
 
 _PATHVIEW_IMAGE_WIDTH = 800
 
 
+error_pattern = re.compile("__LATCH_ERROR_START__(.*?)__LATCH_ERROR_END__", re.DOTALL)
+
+
 _WARNING_PATTERN = re.compile(
-    "__LATCH_WARNING_START__(.*)__LATCH_WARNING_END__", re.MULTILINE
+    "__LATCH_WARNING_START__(.*?)__LATCH_WARNING_END__", re.DOTALL
 )
 
 
@@ -107,6 +104,11 @@ def go_pathway(
     )
     print("Finished go pathway")
 
+    for item in re.findall(error_pattern, stdout):
+        message(
+            "error",
+            {"title": "Gene ontology and pathway analysis ERROR", "body": item},
+        )
     for item in re.findall(_WARNING_PATTERN, stdout):
         message(
             "warning",
@@ -118,7 +120,7 @@ def go_pathway(
 
     contrast_data = {}
 
-    with open("ex.csv", "r") as f:
+    with open(contrast_csv_path, "r") as f:
         rows = csv.DictReader(f)
         # Gene column name is an empty string (at least in current DESeq2 contrast csv outputs)
         contrast_data = {
@@ -150,9 +152,9 @@ def go_pathway(
             pathway_id = row["ID"]
             pathway_name = row["Description"]
 
-            data["pathwayTable"].append(
+            data["pathwayData"].append(
                 {
-                    "pathwayID": pathway_id,
+                    "pathwayId": pathway_id,
                     "pathwayName": pathway_name,
                     "pValue": f'{row["pvalue"]:.3}',
                     "pAdjusted": f'{row["p.adjust"]:.3}',
@@ -264,9 +266,8 @@ def go_pathway(
 
 
 metadata = LatchMetadata(
-    display_name="Genetic Ontology and Pathway Analysis",
-    author=LatchAuthor(
-    ),
+    display_name="Gene Ontology and Pathway Analysis",
+    author=LatchAuthor(),
     parameters={
         "contrast_csv": LatchParameter(
             display_name="Contrast Data",
