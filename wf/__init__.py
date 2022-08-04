@@ -351,7 +351,9 @@ def go_pathway(
 
 metadata = LatchMetadata(
     display_name="Pathway Enrichment Analysis",
-    # documentation="",
+    documentation="https://www.latch.wiki/bulk-rna-seq-end-to-end#49afbcfd1f9d4ef381644d0e11e44bd2",
+    wiki_url="https://www.latch.wiki/bulk-rna-seq-end-to-end#49afbcfd1f9d4ef381644d0e11e44bd2",
+    video_tutorial="https://www.loom.com/share/c3848161fd6347cd8b560c5c904116d3",
     author=LatchAuthor(
         # name="Workflow Author",
         # email="licensing@company.com",
@@ -390,11 +392,11 @@ def gene_ontology_pathway_analysis(
     number_of_pathways: int = 20,
     output_location: LatchDir = LatchDir("latch:///Pathway Analysis/"),
 ) -> LatchDir:
-    """Use differential expression contrast data to calculate the gene ontology
-    and pathways for the most significant genes
+    """Use differential expression contrast data to calculate the gene ontology and pathways for the most significant genes.
 
-    Gene ontology
-    https://www.pnas.org/doi/10.1073/pnas.0506580102
+    Under the hood, the workflow uses Gene Set Enrichment Analysis (GSEA) and
+    searches for the top 20 pathways using mSigDB, KEGG, and GO pathway
+    databases. For more information, see our [wiki]("https://www.latch.wiki/bulk-rna-seq-end-to-end#49afbcfd1f9d4ef381644d0e11e44bd2").
     """
     return go_pathway(
         contrast_csv=contrast_csv,
