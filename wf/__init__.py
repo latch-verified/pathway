@@ -9,6 +9,7 @@ from typing import Any, Optional, Union
 from xml.etree import ElementTree
 
 import imagesize
+from flytekit import LaunchPlan
 from jinja2 import Template
 from latch import large_task, message, workflow
 from latch.types import LatchAuthor, LatchDir, LatchFile, LatchMetadata, LatchParameter
@@ -403,4 +404,28 @@ def gene_ontology_pathway_analysis(
         report_name=report_name,
         number_of_pathways=number_of_pathways,
         output_location=output_location,
+    )
+
+
+if __name__ == "wf":
+    LaunchPlan.create(
+        "wf.__init__.gene_ontology_pathway_analysis.Abs vs Gingiva (Foote, 2019)",
+        gene_ontology_pathway_analysis,
+        default_inputs={
+            "contrast_csv": LatchFile(
+                "s3://latch-public/welcome/gsea_pathway/Abs vs Gingiva (Condition).csv"
+            ),
+            "report_name": "Test Data - Abs vs Gingiva (Foote, 2019)",
+        },
+    )
+
+    LaunchPlan.create(
+        "wf.__init__.gene_ontology_pathway_analysis.CoCl2 vs Control (Knyazev, 2021)",
+        gene_ontology_pathway_analysis,
+        default_inputs={
+            "contrast_csv": LatchFile(
+                "s3://latch-public/welcome/gsea_pathway/CoCl2 vs Control (Condition).csv"
+            ),
+            "report_name": "Test Data - CoCl2 vs Control (Knyazev, 2021)",
+        },
     )
