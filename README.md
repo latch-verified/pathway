@@ -21,9 +21,6 @@ Latch Verified
   <a href="https://github.com/latch-verified/pathway/releases/latest">
     <img src="https://img.shields.io/github/release/latch-verified/pathway.svg" alt="Current Release" />
   </a>
-  <a href="https://github.com/latch-verified/pathway/actions/workflows/tests.yml">
-    <img src="https://github.com/latch-verified/pathway/actions/workflows/tests.yml/badge.svg" alt="End-to-End Tests" />
-  </a>
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/LICENSE-MIT-brightgreen.svg" alt="License" />
   </a>
