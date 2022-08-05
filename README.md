@@ -40,3 +40,8 @@ Latch Verified
 </h3>
 
 </html>
+
+Under the hood, the workflow uses Gene Set Enrichment Analysis (GSEA) and
+searches for the top 20 pathways using mSigDB, KEGG, and GO pathway databases.
+For more information, see our
+[wiki]("https://www.latch.wiki/bulk-rna-seq-end-to-end#49afbcfd1f9d4ef381644d0e11e44bd2").
