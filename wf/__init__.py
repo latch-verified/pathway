@@ -1,4 +1,5 @@
 import csv
+import functools
 import json
 import os
 import re
@@ -11,8 +12,11 @@ from xml.etree import ElementTree
 import imagesize
 from flytekit import LaunchPlan
 from jinja2 import Template
-from latch import large_task, message, workflow
-from latch.types import LatchAuthor, LatchDir, LatchFile, LatchMetadata, LatchParameter
+from latch import medium_task, message, workflow
+from latch.types import (LatchAuthor, LatchDir, LatchFile, LatchMetadata,
+                         LatchParameter)
+
+print = functools.partial(print, flush=True)
 
 
 def run_and_capture_output(command: list[str]) -> tuple[int, str]:
@@ -209,8 +213,14 @@ def make_gene_annotation_view_rect(
     image_width: float,
     graphics: ElementTree,
 ) -> dict[str, float]:
+
     scale = PATHVIEW_IMAGE_WIDTH / image_width
     attributes = ("x", "y", "width", "height")
+
+    # Want type of "rect"
+    if graphics.get("type") == "line":
+        return
+
     x, y, width, height = [float(graphics.get(a)) * scale for a in attributes]
 
     # Shift x, y coordinates from center to top-left
@@ -268,13 +278,15 @@ def parse_gene_groups(
         if len(genes) == 0:
             continue
 
-        gene_groups.append(
-            {
-                "view": make_gene_annotation_view_rect(pathview_image_width, graphics),
-                "core": any(genes.values()),
-                "genes": [{"name": k, "core": v} for k, v in genes.items()],
-            }
-        )
+        view = make_gene_annotation_view_rect(pathview_image_width, graphics)
+        if view:
+            gene_groups.append(
+                {
+                    "view": view,
+                    "core": any(genes.values()),
+                    "genes": [{"name": k, "core": v} for k, v in genes.items()],
+                }
+            )
 
     return gene_groups
 
@@ -299,7 +311,7 @@ def run_rscript(contrast_csv: LatchFile, number_of_pathways: int) -> None:
         raise RuntimeError(f"R script failed with exit code '{returncode}'")
 
 
-@large_task
+@medium_task
 def go_pathway(
     contrast_csv: LatchFile,
     report_name: str,
@@ -356,9 +368,8 @@ metadata = LatchMetadata(
     wiki_url="https://www.latch.wiki/bulk-rna-seq-end-to-end#49afbcfd1f9d4ef381644d0e11e44bd2",
     video_tutorial="https://www.loom.com/share/c3848161fd6347cd8b560c5c904116d3",
     author=LatchAuthor(
-        # name="Workflow Author",
-        # email="licensing@company.com",
-        # github="https://github.com/author",
+        name="Latch Verified",
+        github="https://github.com/latch-verified",
     ),
     repository="https://github.com/latch-verified/pathway",
     license="MIT",
