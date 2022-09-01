@@ -12,7 +12,8 @@ import imagesize
 from flytekit import LaunchPlan
 from jinja2 import Template
 from latch import large_task, message, workflow
-from latch.types import LatchAuthor, LatchDir, LatchFile, LatchMetadata, LatchParameter
+from latch.types import (LatchAuthor, LatchDir, LatchFile, LatchMetadata,
+                         LatchParameter)
 
 
 def run_and_capture_output(command: list[str]) -> tuple[int, str]:
@@ -356,9 +357,8 @@ metadata = LatchMetadata(
     wiki_url="https://www.latch.wiki/bulk-rna-seq-end-to-end#49afbcfd1f9d4ef381644d0e11e44bd2",
     video_tutorial="https://www.loom.com/share/c3848161fd6347cd8b560c5c904116d3",
     author=LatchAuthor(
-        # name="Workflow Author",
-        # email="licensing@company.com",
-        # github="https://github.com/author",
+        name="Latch Verified",
+        github="https://github.com/latch-verified",
     ),
     repository="https://github.com/latch-verified/pathway",
     license="MIT",
