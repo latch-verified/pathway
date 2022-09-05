@@ -53,26 +53,64 @@ read_tabular <- function(path) {
   )
 }
 
-p("Loading gene annotations")
-organism <- "org.Hs.eg.db"
-suppressMessages(suppressWarnings(library(organism, character.only = TRUE)))
-msig_db <- msigdbr(species = "Homo sapiens") %>% dplyr::select(gs_name, entrez_gene)
-
 p("Loading contrast data")
 args <- commandArgs(trailingOnly = TRUE)
 
 res <- read_tabular(args[[1]])
+
 num_pathways <- strtoi(args[[2]])
+msig_species_id <- args[[3]]
+go_species_id <- args[[4]]
+kegg_species_id <- args[[5]]
+
+p("Loading gene annotations")
+suppressMessages(suppressWarnings(library("org.Hs.eg.db", character.only = TRUE)))
+suppressMessages(suppressWarnings(library("org.Mm.eg.db", character.only = TRUE)))
+suppressMessages(suppressWarnings(library("org.Sc.sgd.db", character.only = TRUE)))
+
+msig_db <- msigdbr(species = msig_species_id) %>% dplyr::select(gs_name, entrez_gene)
 
 p("Preparing data")
-dsD <- res %>%
-  mutate(gene_name = .data[[vec_as_names("", repair = "unique")]]) %>%
-  dplyr::select(gene_name, log2FoldChange) %>%
-  na.omit() %>%
-  mutate(gene_name = mapIds(org.Hs.eg.db, keys = gene_name, keytype = "ALIAS", column = "ENTREZID")) %>%
-  na.omit() %>%
-  distinct(gene_name, .keep_all = TRUE) %>%
-  column_to_rownames("gene_name")
+
+
+get_names_package <- function(package_string) {
+  if (package_string == "org.Hs.eg.db") {
+    return(org.Hs.eg.db)
+  } else if (package_string == "org.Mm.eg.db") {
+    return(org.Mm.eg.db)
+  } else if (package_string == "org.Sc.sgd.db") {
+    return(org.Sc.sgd.db)
+  } else {
+    return(NULL)
+  }
+}
+
+dsD <- tryCatch(
+  {
+    res %>%
+      mutate(gene_name = .data[[vec_as_names("", repair = "unique")]]) %>%
+      dplyr::select(gene_name, log2FoldChange) %>%
+      na.omit() %>%
+      mutate(gene_name = mapIds(get_names_package(go_species_id), keys = gene_name, keytype = "ALIAS", column = "ENTREZID", multiVals = "first")) %>%
+      na.omit() %>%
+      distinct(gene_name, .keep_all = TRUE) %>%
+      column_to_rownames("gene_name")
+  },
+  error = function(cond) {
+    return(
+      res %>%
+        mutate(gene_name = .data[[vec_as_names("", repair = "unique")]]) %>%
+        dplyr::select(gene_name, log2FoldChange) %>%
+        na.omit() %>%
+        mutate(gene_name = gsub("\\.\\d+", "", gene_name)) %>%
+        mutate(gene_name = mapIds(get_names_package(go_species_id), keys = gene_name, keytype = "ENSEMBL", column = "ENTREZID", multiVals = "first")) %>%
+        na.omit() %>%
+        distinct(gene_name, .keep_all = TRUE) %>%
+        column_to_rownames("gene_name")
+    )
+  }
+)
+
 ds <- dsD$log2FoldChange
 names(ds) <- rownames(dsD)
 ds <- ds %>% sort(decreasing = TRUE)
@@ -85,7 +123,7 @@ print(Sys.time() - start)
 head(msig)
 p("Running GO")
 start <- Sys.time()
-go <- gseGO(ds, ont = "ALL", organism, keyType = "ENTREZID")
+go <- gseGO(ds, ont = "ALL", go_species_id, keyType = "ENTREZID")
 print(Sys.time() - start)
 
 head(go)
@@ -110,7 +148,7 @@ if (nrow(go) > 0) {
 
 p("Running KEGG")
 start <- Sys.time()
-kks <- gseKEGG(ds, "hsa")
+kks <- gseKEGG(ds, kegg_species_id)
 print(Sys.time() - start)
 
 
@@ -126,7 +164,7 @@ if (nrow(kks) > 0) {
   dev.off()
 
   entrezIDsToGeneNames <- function(entrezIDs) {
-    return(mapIds(org.Hs.eg.db, entrezIDs, "SYMBOL", "ENTREZID") %>% paste(collapse = " "))
+    return(mapIds(get_names_package(go_species_id), entrezIDs, "SYMBOL", "ENTREZID") %>% paste(collapse = " "))
   }
 
   pathways <- kks@result %>%
@@ -150,7 +188,7 @@ if (nrow(kks) > 0) {
 
   for (pathwayID in pathways$ID) {
     p(paste("  Running pathview on", pathwayID))
-    pathview(gene.data = ds, pathway.id = pathwayID, species = "Homo sapiens")
+    pathview(gene.data = ds, pathway.id = pathwayID, species = msig_species_id)
   }
 } else {
   warn(paste(
@@ -171,4 +209,3 @@ dev.off()
 png(file = "/root/res/MSig/Ridge Plot.png", width = 960, height = 900)
 print(ridgeplot(msig) + labs(x = "enrichment distribution"))
 dev.off()
-

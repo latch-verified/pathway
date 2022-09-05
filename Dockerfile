@@ -30,9 +30,9 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key '95C0FAF38DB3CCAD0C0
 RUN add-apt-repository "deb https://cloud.r-project.org/bin/linux/debian $(lsb_release --codename --short)-cran40/"
 
 RUN apt-get update && apt-get install --yes \
-    r-base \
-    r-base-dev \
-    locales
+  r-base \
+  r-base-dev \
+  locales
 
 RUN apt-mark hold r-base r-base-dev
 
@@ -43,9 +43,9 @@ RUN /usr/sbin/update-locale LANG="en_US.UTF-8"
 # >>> R packages
 RUN apt-get update
 RUN apt install --yes \
-    libcurl4-openssl-dev \
-    libxml2-dev \
-    libssl-dev
+  libcurl4-openssl-dev \
+  libxml2-dev \
+  libssl-dev
 
 RUN Rscript -e 'install.packages("BiocManager")'
 RUN Rscript -e 'BiocManager::install(version = "3.15")'

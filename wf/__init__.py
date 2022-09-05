@@ -4,7 +4,9 @@ import json
 import os
 import re
 import subprocess
+import time
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
 from xml.etree import ElementTree
@@ -17,6 +19,31 @@ from latch.types import (LatchAuthor, LatchDir, LatchFile, LatchMetadata,
                          LatchParameter)
 
 print = functools.partial(print, flush=True)
+
+
+class Species(Enum):
+    HUMAN = "Homo sapiens"
+    MOUSE = "Mus musculus"
+    YEAST = "Saccharomyces cerevisiae"
+
+
+species_2_msig = {
+    Species.HUMAN: "Homo sapiens",
+    Species.MOUSE: "Mus musculus",
+    Species.YEAST: "Saccharomyces cerevisiae",
+}
+
+species_2_go = {
+    Species.HUMAN: "org.Hs.eg.db",
+    Species.MOUSE: "org.Mm.eg.db",
+    Species.YEAST: "org.Sc.sgd.db",
+}
+
+species_2_kegg = {
+    Species.HUMAN: "hsa",
+    Species.MOUSE: "mmu",
+    Species.YEAST: "sce",
+}
 
 
 def run_and_capture_output(command: list[str]) -> tuple[int, str]:
@@ -236,6 +263,7 @@ def parse_gene_groups(
     pathway: Pathway,
     contrast_genes: set[str],
     pathview_path: Path,
+    species: Species,
 ) -> list[dict[str, Any]]:
     gene_groups = []
     entrez_id_to_gene = dict(zip(pathway.core_entrez_ids, pathway.core_enriched_genes))
@@ -261,9 +289,9 @@ def parse_gene_groups(
 
         genes: dict[str, bool] = {}
         for name in raw_names.split(" "):
-            if not name.startswith("hsa:"):
+            if not name.startswith(f"{species_2_kegg[species]}:"):
                 continue
-            entrez_id = name.removeprefix("hsa:")
+            entrez_id = name.removeprefix(f"{species_2_kegg[species]}:")
             if entrez_id not in entrez_id_to_gene:
                 continue
             genes[entrez_id_to_gene[entrez_id]] = True
@@ -291,7 +319,9 @@ def parse_gene_groups(
     return gene_groups
 
 
-def run_rscript(contrast_csv: LatchFile, number_of_pathways: int) -> None:
+def run_rscript(
+    contrast_csv: LatchFile, number_of_pathways: int, species: Species
+) -> None:
     print("Running go pathway")
 
     returncode, stdout = run_and_capture_output(
@@ -300,6 +330,9 @@ def run_rscript(contrast_csv: LatchFile, number_of_pathways: int) -> None:
             "/root/go_pathway.r",
             str(Path(contrast_csv).resolve()),
             str(number_of_pathways),
+            species_2_msig[species],
+            species_2_go[species],
+            species_2_kegg[species],
         ]
     )
 
@@ -315,10 +348,11 @@ def run_rscript(contrast_csv: LatchFile, number_of_pathways: int) -> None:
 def go_pathway(
     contrast_csv: LatchFile,
     report_name: str,
+    species: Species,
     output_location: LatchDir,
     number_of_pathways: int,
 ) -> LatchDir:
-    run_rscript(contrast_csv, number_of_pathways)
+    run_rscript(contrast_csv, number_of_pathways, species)
 
     try:
         pathways = parse_kegg_pathway_table()
@@ -339,7 +373,7 @@ def go_pathway(
             pathview_path = Path(f"./{p.kegg_id}.pathview.png")
 
             pathway_id_to_gene_groups[p.kegg_id] = parse_gene_groups(
-                p, contrast_genes, pathview_path
+                p, contrast_genes, pathview_path, species
             )
 
             relative_remote_path = f"Pathview/{slugify(p.name)}.png"
@@ -384,6 +418,10 @@ metadata = LatchMetadata(
             description="Name of your report",
             batch_table_column=True,
         ),
+        "species": LatchParameter(
+            display_name="Species",
+            description="Which species to condition pathways on",
+        ),
         "number_of_pathways": LatchParameter(
             display_name="Number of top pathways to display",
             description="Pathways are ranked by their enrichment score",
@@ -401,6 +439,7 @@ metadata = LatchMetadata(
 def gene_ontology_pathway_analysis(
     contrast_csv: LatchFile,
     report_name: str,
+    species: Species = Species.HUMAN,
     number_of_pathways: int = 20,
     output_location: LatchDir = LatchDir("latch:///Pathway Analysis/"),
 ) -> LatchDir:
@@ -413,6 +452,7 @@ def gene_ontology_pathway_analysis(
     return go_pathway(
         contrast_csv=contrast_csv,
         report_name=report_name,
+        species=species,
         number_of_pathways=number_of_pathways,
         output_location=output_location,
     )
