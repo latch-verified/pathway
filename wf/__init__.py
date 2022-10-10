@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from xml.etree import ElementTree
 
 import imagesize
@@ -76,7 +76,7 @@ GENESETS_PATH = "/root/tempres/genesets.txt"
 
 
 def pathway_to_genesets_mapping(
-    relevant_pathway_ids: set[str],
+    relevant_pathway_ids: Set[str],
 ) -> Dict[str, Tuple[str, str]]:
     path = Path(GENESETS_PATH).resolve()
     pathway_ids = []
@@ -260,7 +260,7 @@ def make_gene_annotation_view_rect(
 
 def parse_gene_groups(
     pathway: Pathway,
-    contrast_genes: set[str],
+    contrast_genes: Set[str],
     pathview_path: Path,
     species: Species,
 ) -> List[Dict[str, Any]]:
