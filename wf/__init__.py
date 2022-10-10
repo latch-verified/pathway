@@ -8,15 +8,14 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from xml.etree import ElementTree
 
 import imagesize
 from flytekit import LaunchPlan
 from jinja2 import Template
 from latch import medium_task, message, workflow
-from latch.types import (LatchAuthor, LatchDir, LatchFile, LatchMetadata,
-                         LatchParameter)
+from latch.types import LatchAuthor, LatchDir, LatchFile, LatchMetadata, LatchParameter
 
 print = functools.partial(print, flush=True)
 
@@ -46,7 +45,7 @@ species_2_kegg = {
 }
 
 
-def run_and_capture_output(command: list[str]) -> tuple[int, str]:
+def run_and_capture_output(command: List[str]) -> Tuple[int, str]:
     captured_stdout = []
 
     with subprocess.Popen(
@@ -78,7 +77,7 @@ GENESETS_PATH = "/root/tempres/genesets.txt"
 
 def pathway_to_genesets_mapping(
     relevant_pathway_ids: set[str],
-) -> dict[str, tuple[str, str]]:
+) -> Dict[str, Tuple[str, str]]:
     path = Path(GENESETS_PATH).resolve()
     pathway_ids = []
     entrez_ids = []
@@ -98,7 +97,7 @@ def pathway_to_genesets_mapping(
                 if split:
                     data = data.split(" ")
                 current.append(data)
-    mapping = dict(zip(pathway_ids, zip(entrez_ids, gene_names)))
+    mapping = Dict(zip(pathway_ids, zip(entrez_ids, gene_names)))
     return {k: v for k, v in mapping.items() if k in relevant_pathway_ids}
 
 
@@ -134,11 +133,11 @@ class Pathway:
     normalized_enrichment_score: str
     gene_set_size: str
     leading_edge_size: str
-    core_enriched_genes: list[str]
-    core_entrez_ids: list[str]
+    core_enriched_genes: List[str]
+    core_entrez_ids: List[str]
 
 
-def pathway_to_dict(pathway: Pathway) -> dict[str, Union[str, list[str]]]:
+def pathway_to_dict(pathway: Pathway) -> Dict[str, Union[str, List[str]]]:
     return {
         "pathwayId": pathway.kegg_id,
         "pathwayName": pathway.name,
@@ -155,8 +154,8 @@ def pathway_to_dict(pathway: Pathway) -> dict[str, Union[str, list[str]]]:
 KEGG_TABLE_PATH = "./res/KEGG/table.csv"
 
 
-def parse_kegg_pathway_table() -> list[Pathway]:
-    pathways: list[Pathway] = []
+def parse_kegg_pathway_table() -> List[Pathway]:
+    pathways: List[Pathway] = []
 
     with Path(KEGG_TABLE_PATH).open("r") as f:
         for row in csv.DictReader(f):
@@ -217,13 +216,13 @@ def remote_results_path(
 TEMPLATE_REPORT_PATH = "./template.html"
 
 
-def create_report(report_name: str, kegg_data: Optional[dict[str, Any]]) -> Path:
+def create_report(report_name: str, kegg_data: Optional[Dict[str, Any]]) -> Path:
     report_path = local_results_path("Report.html")
     with report_path.open("w") as freport:
         with Path(TEMPLATE_REPORT_PATH).open("r") as ftemplate:
             template = Template(ftemplate.read())
 
-            data: dict[str, Any] = {"reportName": report_name}
+            data: Dict[str, Any] = {"reportName": report_name}
             if kegg_data is not None:
                 data.update(kegg_data)
                 data["showKEGG"] = True
@@ -239,7 +238,7 @@ def create_report(report_name: str, kegg_data: Optional[dict[str, Any]]) -> Path
 def make_gene_annotation_view_rect(
     image_width: float,
     graphics: ElementTree,
-) -> dict[str, float]:
+) -> Dict[str, float]:
 
     scale = PATHVIEW_IMAGE_WIDTH / image_width
     attributes = ("x", "y", "width", "height")
@@ -264,9 +263,9 @@ def parse_gene_groups(
     contrast_genes: set[str],
     pathview_path: Path,
     species: Species,
-) -> list[dict[str, Any]]:
+) -> List[Dict[str, Any]]:
     gene_groups = []
-    entrez_id_to_gene = dict(zip(pathway.core_entrez_ids, pathway.core_enriched_genes))
+    entrez_id_to_gene = Dict(zip(pathway.core_entrez_ids, pathway.core_enriched_genes))
 
     pathview_image_width = imagesize.get(str(pathview_path))[0]
 
@@ -287,7 +286,7 @@ def parse_gene_groups(
         if graphics is None:
             continue
 
-        genes: dict[str, bool] = {}
+        genes: Dict[str, bool] = {}
         for name in raw_names.split(" "):
             if not name.startswith(f"{species_2_kegg[species]}:"):
                 continue
@@ -364,8 +363,8 @@ def go_pathway(
 
     if kegg_data is not None:
         contrast_csv_data = parse_contrast_csv(contrast_csv)
-        pathviews: list[dict[str, str]] = []
-        pathway_id_to_gene_groups: dict[str, list[dict[str, Any]]] = {}
+        pathviews: List[Dict[str, str]] = []
+        pathway_id_to_gene_groups: Dict[str, List[Dict[str, Any]]] = {}
         contrast_genes = set(contrast_csv_data.keys())
 
         assert pathways is not None
