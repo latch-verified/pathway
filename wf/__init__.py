@@ -101,7 +101,7 @@ def pathway_to_genesets_mapping(
                 if split:
                     data = data.split(" ")
                 current.append(data)
-    mapping = Dict(zip(pathway_ids, zip(entrez_ids, gene_names)))
+    mapping = dict(zip(pathway_ids, zip(entrez_ids, gene_names)))
     return {k: v for k, v in mapping.items() if k in relevant_pathway_ids}
 
 
@@ -269,7 +269,7 @@ def parse_gene_groups(
     species: Species,
 ) -> List[Dict[str, Any]]:
     gene_groups = []
-    entrez_id_to_gene = Dict(zip(pathway.core_entrez_ids, pathway.core_enriched_genes))
+    entrez_id_to_gene = dict(zip(pathway.core_entrez_ids, pathway.core_enriched_genes))
 
     pathview_image_width = imagesize.get(str(pathview_path))[0]
 
