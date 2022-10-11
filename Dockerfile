@@ -57,7 +57,6 @@ RUN Rscript -e 'BiocManager::install(c( \
   "readxl", \
   "stringr", \
   "vctrs", \
-  "clusterProfiler", \
   "DOSE", \
   "ggridges", \
   "enrichplot", \
@@ -86,6 +85,11 @@ RUN Rscript -e 'BiocManager::install(c( \
   "org.Pt.eg.db", \
   "org.EcSakai.eg.db", \
   "org.Mxanthus.db" \
+  ), update=FALSE)'
+
+RUN apt install --yes libfontconfig1-dev
+RUN Rscript -e 'BiocManager::install(c( \
+  "clusterProfiler" \
   ), update=FALSE)'
 
 RUN python3 -m pip install --upgrade latch imagesize jinja2
