@@ -67,6 +67,7 @@ p("Loading gene annotations")
 suppressMessages(suppressWarnings(library("org.Hs.eg.db", character.only = TRUE)))
 suppressMessages(suppressWarnings(library("org.Mm.eg.db", character.only = TRUE)))
 suppressMessages(suppressWarnings(library("org.Sc.sgd.db", character.only = TRUE)))
+suppressMessages(suppressWarnings(library("org.Rn.eg.db", character.only = TRUE)))
 
 msig_db <- msigdbr(species = msig_species_id) %>% dplyr::select(gs_name, entrez_gene)
 
@@ -80,6 +81,8 @@ get_names_package <- function(package_string) {
     return(org.Mm.eg.db)
   } else if (package_string == "org.Sc.sgd.db") {
     return(org.Sc.sgd.db)
+  } else if (package_string == "org.Rn.eg.db") {
+    return(org.Rn.eg.db)
   } else {
     return(NULL)
   }
