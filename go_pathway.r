@@ -118,13 +118,7 @@ ds <- dsD$log2FoldChange
 names(ds) <- rownames(dsD)
 ds <- ds %>% sort(decreasing = TRUE)
 
-p("Running MSig")
-start <- Sys.time()
-msig <- GSEA(ds, TERM2GENE = msig_db)
-print(Sys.time() - start)
-
-head(msig)
-p("Running GO")
+p("Running GO GSE")
 start <- Sys.time()
 go <- gseGO(ds, ont = "ALL", go_species_id, keyType = "ENTREZID")
 print(Sys.time() - start)
@@ -133,12 +127,12 @@ head(go)
 
 if (nrow(go) > 0) {
   p("  Plotting")
-  dir.create("/root/res/Gene Ontology", showWarnings = FALSE, recursive = TRUE)
-  png(file = "/root/res/Gene Ontology/Dot Plot.png", width = 960, height = 900)
+  dir.create("./res/Gene Ontology", showWarnings = FALSE, recursive = TRUE)
+  png(file = "./res/Gene Ontology/Dot Plot.png", width = 960, height = 900)
   print(dotplot(go, showCategory = 20, split = ".sign") + facet_grid(. ~ .sign))
   dev.off()
 
-  png(file = "/root/res/Gene Ontology/Ridge Plot.png", width = 960, height = 900)
+  png(file = "./res/Gene Ontology/Ridge Plot.png", width = 960, height = 900)
   print(ridgeplot(go) + labs(x = "enrichment distribution"))
   dev.off()
 } else {
@@ -149,20 +143,40 @@ if (nrow(go) > 0) {
   ))
 }
 
-p("Running KEGG")
+p("Running GO enrichment")
+start <- Sys.time()
+enrich_go <- enrichGO(names(ds), go_species_id, ont = "ALL", keyType = "ENTREZID")
+enrich_go <- pairwise_termsim(enrich_go)
+print(Sys.time() - start)
+
+head(enrich_go)
+
+if (nrow(enrich_go) > 0) {
+  p("  Plotting")
+  png(file = "./res/Gene Ontology/Enrichment Map.png", width = 960, height = 900)
+  print(emapplot(enrich_go))
+  dev.off()
+} else {
+  warn(paste(
+    "No statistically significant enrichment tests (with cutoff p ≤ 0.05) found after ",
+    "running enrichment analysis on Gene Ontology.",
+    sep = ""
+  ))
+}
+
+p("Running KEGG GSE")
 start <- Sys.time()
 kks <- gseKEGG(ds, kegg_species_id)
 print(Sys.time() - start)
 
-
 if (nrow(kks) > 0) {
   p("  Plotting")
-  dir.create("/root/res/KEGG", showWarnings = FALSE, recursive = TRUE)
-  png(file = "/root/res/KEGG/Dot Plot.png", width = 960, height = 900)
+  dir.create("./res/KEGG", showWarnings = FALSE, recursive = TRUE)
+  png(file = "./res/KEGG/Dot Plot.png", width = 960, height = 900)
   print(dotplot(kks, showCategory = 20, split = ".sign") + facet_grid(. ~ .sign))
   dev.off()
 
-  png(file = "/root/res/KEGG/Ridge Plot.png", width = 960, height = 900)
+  png(file = "./res/KEGG/Ridge Plot.png", width = 960, height = 900)
   print(ridgeplot(kks) + labs(x = "enrichment distribution"))
   dev.off()
 
@@ -176,10 +190,10 @@ if (nrow(kks) > 0) {
     mutate(entrezList = strsplit(core_enrichment, "/"), .keep = "unused") %>%
     mutate(coreEnrichedGenes = unlist(lapply(entrezList, entrezIDsToGeneNames)), .keep = "unused")
 
-  write.csv(pathways, "/root/res/KEGG/table.csv", row.names = FALSE)
+  write.csv(pathways, "./res/KEGG/table.csv", row.names = FALSE)
 
-  dir.create("/root/tempres", showWarnings = FALSE, recursive = TRUE)
-  genesets_path <- "/root/tempres/genesets.txt"
+  dir.create("./tempres", showWarnings = FALSE, recursive = TRUE)
+  genesets_path <- "./tempres/genesets.txt"
   geneSets <- kks@geneSets
   write("PATHWAYIDS", genesets_path)
   lapply(names(geneSets), write, genesets_path, append = TRUE, ncolumns = 100000)
@@ -202,13 +216,53 @@ if (nrow(kks) > 0) {
   ))
 }
 
+p("Running KEGG enrichment")
+start <- Sys.time()
+enrich_kegg <- enrichGO(names(ds), go_species_id, ont = "ALL", keyType = "ENTREZID")
+enrich_kegg <- pairwise_termsim(enrich_kegg)
+print(Sys.time() - start)
+
+head(enrich_kegg)
+
+if (nrow(enrich_kegg) > 0) {
+  p("  Plotting")
+  png(file = "./res/KEGG/Enrichment Map.png", width = 960, height = 900)
+  print(emapplot(enrich_kegg))
+  dev.off()
+} else {
+  warn(paste(
+    "No statistically significant enrichment tests (with cutoff p ≤ 0.05) found after ",
+    "running enrichment analysis on KEGG.",
+    sep = ""
+  ))
+}
+
+p("Running MSig")
+start <- Sys.time()
+msig <- GSEA(ds, TERM2GENE = msig_db)
+print(Sys.time() - start)
+
+head(msig)
 
 p("  Plotting")
-dir.create("/root/res/MSig", showWarnings = FALSE, recursive = TRUE)
-png(file = "/root/res/MSig/Dot Plot.png", width = 960, height = 900)
+dir.create("./res/MSig", showWarnings = FALSE, recursive = TRUE)
+png(file = "./res/MSig/Dot Plot.png", width = 960, height = 900)
 print(dotplot(msig, showCategory = 20, split = ".sign") + facet_grid(. ~ .sign))
 dev.off()
 
-png(file = "/root/res/MSig/Ridge Plot.png", width = 960, height = 900)
+png(file = "./res/MSig/Ridge Plot.png", width = 960, height = 900)
 print(ridgeplot(msig) + labs(x = "enrichment distribution"))
+dev.off()
+
+p("Running MSig enrichment")
+start <- Sys.time()
+enrich_msig <- enricher(names(ds), TERM2GENE = msig_db)
+enrich_msig <- pairwise_termsim(enrich_msig)
+print(Sys.time() - start)
+
+head(enrich_msig)
+
+p("  Plotting")
+png(file = "./res/MSig/Enrichment Map.png", width = 960, height = 900)
+print(emapplot(enrich_msig))
 dev.off()

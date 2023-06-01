@@ -48,7 +48,7 @@ RUN apt install --yes \
   libssl-dev
 
 RUN Rscript -e 'install.packages("BiocManager")'
-RUN Rscript -e 'BiocManager::install(version = "3.15")'
+RUN Rscript -e 'BiocManager::install(version = "3.17")'
 RUN Rscript -e 'BiocManager::install(c( \
   "purrr", \
   "dplyr", \
