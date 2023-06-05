@@ -204,8 +204,16 @@ if (nrow(kks) > 0) {
   lapply(geneNames, write, genesets_path, append = TRUE, ncolumns = 100000)
 
   for (pathwayID in pathways$ID) {
-    p(paste("  Running pathview on", pathwayID))
-    pathview(gene.data = ds, pathway.id = pathwayID, species = msig_species_id)
+    tryCatch(
+      {
+        p(paste("  Running pathview on", pathwayID))
+        pathview(gene.data = ds, pathway.id = pathwayID, species = msig_species_id)
+      },
+      error = function(cond) {
+        p("    Failed, ignoring")
+        warn(sprintf("Failed to generate KEGG pathview for %s", pathwayID))
+      }
+    )
   }
 } else {
   warn(paste(
